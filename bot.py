@@ -27,7 +27,10 @@ async def send_telegram(chat_id, message):
         await client.post(url, data={"chat_id": chat_id, "text": message})
 
 async def get_latest_tweet():
-    async with httpx.AsyncClient(timeout=10) as client:
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    }
+    async with httpx.AsyncClient(timeout=10, headers=headers) as client:
         for instance in NITTER_INSTANCES:
             try:
                 r = await client.get(f"{instance}/{TWITTER_USER}/rss")
