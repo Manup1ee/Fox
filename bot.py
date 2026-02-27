@@ -38,12 +38,11 @@ async def get_latest_tweet():
                     root = ET.fromstring(r.text)
                     item = root.find(".//item")
                     if item is not None:
-                        title = item.findtext("title", "")
                         link = item.findtext("link", "")
-                        return title, link
+                        return link
             except Exception:
                 continue
-    return None, None
+    return None
 
 async def handle_updates():
     offset = 0
@@ -62,7 +61,7 @@ async def handle_updates():
                 if text == "/start" and chat_id and chat_id not in subscribers:
                     subscribers.append(chat_id)
                     save_subscribers(subscribers)
-                    await send_telegram(chat_id, "✅ Tu es abonné ! Tu recevras les nouveaux tweets.")
+                    await send_telegram(chat_id, "✅ Tu es abonné ! Tu recevras une notification à chaque nouveau tweet.")
         except Exception as e:
             print(f"Erreur Telegram : {e}")
 
@@ -70,14 +69,16 @@ async def watch_twitter():
     last_link = None
     while True:
         try:
-            title, link = await get_latest_tweet()
+            link = await get_latest_tweet()
+            print(f"Dernier tweet trouvé : {link}")
             if link and link != last_link:
                 if last_link is not None:
                     subscribers = load_subscribers()
-                    msg = f"🐦 Nouveau tweet de @{TWITTER_USER} :\n\n{title}\n\n{link}"
+                    print(f"Envoi à {len(subscribers)} abonnés")
                     for chat_id in subscribers:
-                        await send_telegram(chat_id, msg)
+                        await send_telegram(chat_id, f"🐦 @{TWITTER_USER} vient de poster un tweet !")
                 last_link = link
+                print(f"last_link mis à jour : {last_link}")
         except Exception as e:
             print(f"Erreur : {e}")
         await asyncio.sleep(60)
